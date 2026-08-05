@@ -1,0 +1,22 @@
+# Environment files
+.env
+
+# Python
+python-ai/venv/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+.next/
+dist/
+
+# Chroma
+chroma_data/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

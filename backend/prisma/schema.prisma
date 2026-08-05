@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DocumentStatus {
+  PENDING
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  role         String   @default("ADMIN")
+  refreshToken String?  @map("refresh_token")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  documents Document[]
+
+  @@index([email])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model Document {
+  id               String         @id @default(uuid())
+  title            String
+  originalFileName String         @map("original_file_name")
+  filePath         String         @map("file_path")
+  fileSizeBytes    Int            @map("file_size_bytes")
+  mimeType         String         @map("mime_type")
+  status           DocumentStatus @default(PENDING)
+  pageCount        Int?           @map("page_count")
+  chunkCount       Int?           @map("chunk_count")
+  errorMessage     String?        @map("error_message")
+  chromaCollection String         @default("pdf_knowledge_base") @map("chroma_collection")
+
+  uploadedById String @map("uploaded_by_id")
+  uploadedBy   User   @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  sourceOf ChatMessageSource[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([uploadedById])
+  @@map("documents")
+}
+
+model ChatSession {
+  id        String   @id @default(uuid())
+  title     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  messages ChatMessage[]
+
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id                 String      @id @default(uuid())
+  sessionId          String      @map("session_id")
+  session            ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role               MessageRole
+  content            String      @db.Text
+  suggestedQuestions String[]    @default([]) @map("suggested_questions")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  sources ChatMessageSource[]
+
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("chat_messages")
+}
+
+model ChatMessageSource {
+  id         String      @id @default(uuid())
+  messageId  String      @map("message_id")
+  message    ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  documentId String      @map("document_id")
+  document   Document    @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  pageNumber Int?        @map("page_number")
+  snippet    String?     @db.Text
+  score      Float?
+
+  @@index([messageId])
+  @@index([documentId])
+  @@map("chat_message_sources")
+}
