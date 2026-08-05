@@ -11,6 +11,7 @@
     "prisma:migrate": "prisma migrate deploy",
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:seed": "ts-node -r tsconfig-paths/register prisma/seed.ts",
+    "prisma:truncate": "ts-node -r tsconfig-paths/register prisma/truncate.ts",
     "prisma:studio": "prisma studio",
     "lint": "eslint \"src/**/*.ts\"",
     "test": "jest --runInBand"

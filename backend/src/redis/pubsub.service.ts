@@ -12,6 +12,7 @@ import {
   ChatRequestMessage,
   ChatResponseMessage,
   ChatStreamChunkMessage,
+  PdfDeleteRequestMessage,
   PdfProcessRequestMessage,
   PdfProcessResponseMessage
 } from "./types";
@@ -153,6 +154,14 @@ export async function initPubSubSubscriptions(): Promise<void> {
 }
 
 
+
+
+
+export async function publishPdfDeleteRequest(documentId: string): Promise<void> {
+  const message: PdfDeleteRequestMessage = { documentId };
+  await publisherClient.publish(RedisTopics.PDF_DELETE_REQUEST, JSON.stringify(message));
+  logger.info(`Published PDF delete request for document ${documentId}`);
+}
 
 
 

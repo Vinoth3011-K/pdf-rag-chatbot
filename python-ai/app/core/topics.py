@@ -4,3 +4,4 @@ class RedisTopics:
     CHAT_STREAM_CHUNK = "chat.stream.chunk"
     PDF_PROCESS_REQUEST = "pdf.process.request"
     PDF_PROCESS_RESPONSE = "pdf.process.response"
+    PDF_DELETE_REQUEST = "pdf.delete.request"

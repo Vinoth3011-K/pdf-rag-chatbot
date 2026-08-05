@@ -1,3 +1,8 @@
+export interface PdfDeleteRequestMessage {
+  documentId: string;
+}
+
+
 export interface PdfProcessRequestMessage {
   requestId: string;
   documentId: string;

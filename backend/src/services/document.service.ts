@@ -8,6 +8,7 @@ import { ApiError } from "@utils/ApiError";
 import { logger } from "@utils/logger";
 import {
   publishPdfProcessRequest,
+  publishPdfDeleteRequest,
   waitForPdfProcessResponse
 } from "@redis/pubsub.service";
 
@@ -290,7 +291,7 @@ export class DocumentService {
 
     await documentRepository.delete(id);
 
-
+    await publishPdfDeleteRequest(id);
 
     fs.unlink(
       document.filePath,

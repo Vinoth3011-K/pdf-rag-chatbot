@@ -6,14 +6,15 @@ python-dotenv==1.0.1
 
 redis==5.0.8
 
-langchain==0.2.16
-langchain-community==0.2.16
-langchain-openai==0.1.23
-langgraph==0.2.20
-langchain-text-splitters==0.2.4
+langchain==0.3.25
+langchain-community==0.3.24
+langchain-groq==0.3.2
+langgraph==0.3.34
+langchain-text-splitters==0.3.8
 
 chromadb==0.5.5
 sentence-transformers==3.0.1
+numpy>=2.0.0
 
 pypdf==4.3.1
 
