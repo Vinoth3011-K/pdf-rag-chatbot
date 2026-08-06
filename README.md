@@ -68,6 +68,27 @@ Browser ⇄ Next.js ⇄ (REST + SSE) ⇄ Express backend ⇄ (Redis Pub/Sub) ⇄
   (`backend/src/services`), central error handler, Zod validation, structured logging
   (winston / loguru), strict TypeScript.
 
+  ## Screenshots
+
+### Admin Dashboard
+
+![Admin Dashboard](docs\screenshots\admin-dashboard.png)
+
+
+### PDF Upload
+
+![PDF Upload](docs/screenshots/pdf-upload.png)
+
+
+### Chat Interface
+
+![Chat Interface](docs/screenshots/chat-interface.png)
+
+
+### AI Suggested Questions
+
+![AI Suggested Questions](docs/screenshots/suggested-questions.png)
+
 ## API reference
 
 Base URL: `http://localhost:4000/api` — 🔒 = requires `Authorization: Bearer <accessToken>`
