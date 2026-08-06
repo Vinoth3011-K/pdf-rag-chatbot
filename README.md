@@ -89,6 +89,27 @@ Browser ⇄ Next.js ⇄ (REST + SSE) ⇄ Express backend ⇄ (Redis Pub/Sub) ⇄
 
 ![AI Suggested Questions](docs/screenshots/suggested-questions.png)
 
+## Folder Structure
+
+![Folder Structure](docs/Folder-structure.png)
+
+
+## Architecture Diagrams
+
+### System Architecture
+
+![System Architecture](docs/system_architecture_diagram.png)
+
+
+### Redis Communication Flow
+
+![Redis Flow](docs/redis_pubsub_flow_diagram.png)
+
+
+### LangGraph Workflow
+
+![LangGraph Workflow](docs/langgraph_workflow_diagram.png)
+
 ## API reference
 
 Base URL: `http://localhost:4000/api` — 🔒 = requires `Authorization: Bearer <accessToken>`
