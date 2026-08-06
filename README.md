@@ -72,7 +72,7 @@ Browser ⇄ Next.js ⇄ (REST + SSE) ⇄ Express backend ⇄ (Redis Pub/Sub) ⇄
 
 ### Admin Dashboard
 
-![Admin Dashboard](docs\screenshots\admin-dashboard.png)
+![Admin Dashboard](docs/screenshots/admin-dashboard.png)
 
 
 ### PDF Upload
