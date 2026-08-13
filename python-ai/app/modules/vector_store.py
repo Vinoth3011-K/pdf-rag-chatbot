@@ -70,12 +70,15 @@ class VectorStore:
             for c in chunks
         ]
 
-        self.collection.upsert(
-            ids=ids,
-            embeddings=embeddings,
-            documents=texts,
-            metadatas=metadatas,
-        )
+        results = self.collection.query(
+    query_texts=[query_text],
+    n_results=top_k,
+    include=[
+        "documents",
+        "metadatas",
+        "distances",
+    ],
+)
 
         logger.info(
             f"Upserted {len(chunks)} chunks into Chroma for document {document_id}"

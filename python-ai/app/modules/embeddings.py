@@ -1,33 +1,29 @@
 from typing import List
 
 import chromadb
-from chromadb.utils.embedding_functions import DefaultEmbeddingFunction
 
 from app.utils.logging import logger
 
 
 class EmbeddingGenerator:
-    """Generate embeddings using ChromaDB's default embedding function."""
+    """Uses ChromaDB's default embedding function."""
 
     def __init__(self) -> None:
         logger.info("Loading ChromaDB default embedding function")
 
-        self.embedding_function = DefaultEmbeddingFunction()
+        self.client = chromadb.PersistentClient()
 
-    def embed_documents(
-        self,
-        texts: List[str]
-    ) -> List[List[float]]:
+        self.collection = self.client.get_or_create_collection(
+            name="embedding_helper"
+        )
 
-        return self.embedding_function(texts)
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+        result = self.collection._embedding_function(texts)
+        return result.tolist()
 
-    def embed_query(
-        self,
-        text: str
-    ) -> List[float]:
-
-        embeddings = self.embedding_function([text])
-        return embeddings[0]
+    def embed_query(self, text: str) -> List[float]:
+        result = self.collection._embedding_function([text])
+        return result[0].tolist()
 
 
 embedding_generator = EmbeddingGenerator()
