@@ -26,13 +26,31 @@ export function createApp(): Application {
     })
   );
 
-// CORS
+// CORS — build origin list from env (supports comma-separated values)
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  ...(env.corsOrigin
+    ? env.corsOrigin.split(",").map((o) => o.trim()).filter(Boolean)
+    : []),
+];
+
+// Handle OPTIONS preflight for all routes before other middleware
+app.options("*", cors());
+
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-    ],
-    credentials: true,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (Postman, server-to-server, curl)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: Origin not allowed: ${origin}`));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true, // Required — backend sets httpOnly refreshToken cookie
   })
 );
 
