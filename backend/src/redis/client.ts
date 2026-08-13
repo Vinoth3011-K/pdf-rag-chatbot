@@ -11,11 +11,11 @@ export const subscriberClient: RedisClientType = createClient({
 });
 
 publisherClient.on("error", (err: Error) =>
-  logger.error("Redis publisher error", { err })
+  logger.error("Redis publisher error", { message: err.message || err })
 );
 
 subscriberClient.on("error", (err: Error) =>
-  logger.error("Redis subscriber error", { err })
+  logger.error("Redis subscriber error", { message: err.message || err })
 );
 
 export async function connectRedis(): Promise<void> {
