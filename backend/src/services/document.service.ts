@@ -10,7 +10,7 @@ import {
   publishPdfProcessRequest,
   publishPdfDeleteRequest,
   waitForPdfProcessResponse
-} from "@redis/pubsub.service";
+} from "@redis-service/pubsub.service";
 
 
 interface UploadedFileMeta {

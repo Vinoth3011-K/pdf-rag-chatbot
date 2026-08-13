@@ -8,10 +8,10 @@ import {
 import {
   connectRedis,
   disconnectRedis
-} from "@redis/client";
+} from "@redis-service/client";
 import {
   initPubSubSubscriptions
-} from "@redis/pubsub.service";
+} from "@redis-service/pubsub.service";
 
 
 async function bootstrap() {

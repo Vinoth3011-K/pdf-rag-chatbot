@@ -2,8 +2,8 @@ import { MessageRole } from "@prisma/client";
 import { Response } from "express";
 import { chatRepository } from "@repositories/chat.repository";
 import { ApiError } from "@utils/ApiError";
-import { publishChatRequest, subscribeToChatStream } from "@redis/pubsub.service";
-import { ChatHistoryItem } from "@redis/types";
+import { publishChatRequest, subscribeToChatStream } from "@redis-service/pubsub.service";
+import { ChatHistoryItem } from "@redis-service/types";
 
 export class ChatService {
   async streamAnswer(sessionIdInput: string | undefined, userMessage: string, res: Response): Promise<void> {
