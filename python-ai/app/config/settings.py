@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     chroma_collection_name: str = "pdf_knowledge_base"
 
     # Embeddings
-    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    embedding_model: str = ""
 
     # LLM (Groq)
     llm_provider: str = "groq"

@@ -1,28 +1,33 @@
 from typing import List
 
-from sentence_transformers import SentenceTransformer
+import chromadb
+from chromadb.utils.embedding_functions import DefaultEmbeddingFunction
 
-from app.config.settings import get_settings
 from app.utils.logging import logger
-
-settings = get_settings()
 
 
 class EmbeddingGenerator:
-    """Wraps a sentence-transformers model to generate dense embeddings."""
+    """Generate embeddings using ChromaDB's default embedding function."""
 
     def __init__(self) -> None:
-        logger.info(f"Loading embedding model: {settings.embedding_model}")
-        self.model = SentenceTransformer(settings.embedding_model)
+        logger.info("Loading ChromaDB default embedding function")
 
-    def embed_documents(self, texts: List[str]) -> List[List[float]]:
-        embeddings = self.model.encode(texts, show_progress_bar=False, convert_to_numpy=True)
-        return embeddings.tolist()
+        self.embedding_function = DefaultEmbeddingFunction()
 
-    def embed_query(self, text: str) -> List[float]:
-        embedding = self.model.encode([text], show_progress_bar=False, convert_to_numpy=True)
-        return embedding[0].tolist()
+    def embed_documents(
+        self,
+        texts: List[str]
+    ) -> List[List[float]]:
+
+        return self.embedding_function(texts)
+
+    def embed_query(
+        self,
+        text: str
+    ) -> List[float]:
+
+        embeddings = self.embedding_function([text])
+        return embeddings[0]
 
 
-# Loaded once at process start and reused across requests.
 embedding_generator = EmbeddingGenerator()
