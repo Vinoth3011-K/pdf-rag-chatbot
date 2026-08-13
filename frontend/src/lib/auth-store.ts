@@ -4,8 +4,9 @@ import { AuthUser } from "@/types";
 
 interface AuthState {
   accessToken: string | null;
+  refreshToken: string | null;
   user: AuthUser | null;
-  setAuth: (accessToken: string, user: AuthUser) => void;
+  setAuth: (accessToken: string, refreshToken: string, user: AuthUser) => void;
   clearAuth: () => void;
 }
 
@@ -13,9 +14,11 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       accessToken: null,
+      refreshToken: null,
       user: null,
-      setAuth: (accessToken, user) => set({ accessToken, user }),
-      clearAuth: () => set({ accessToken: null, user: null })
+      setAuth: (accessToken, refreshToken, user) =>
+        set({ accessToken, refreshToken, user }),
+      clearAuth: () => set({ accessToken: null, refreshToken: null, user: null })
     }),
     { name: "pdf-rag-auth" }
   )

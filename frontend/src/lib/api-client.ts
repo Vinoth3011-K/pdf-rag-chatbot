@@ -31,8 +31,9 @@ async function request<T>(
 
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
-    headers,
-    credentials: "include"
+    headers
+    // No credentials: "include" — app uses Authorization Bearer header,
+    // not cross-origin cookies. Removing this fixes the CORS preflight error.
   });
 
   if (res.status === 401 && retry) {
@@ -54,15 +55,19 @@ async function request<T>(
 
 async function tryRefresh(): Promise<boolean> {
   try {
+    const { refreshToken } = useAuthStore.getState();
+
+    // Send refreshToken in the JSON body — no cookie dependency
     const res = await fetch(`${API_URL}/auth/refresh`, {
       method: "POST",
-      credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({})
+      body: JSON.stringify({ refreshToken: refreshToken ?? "" })
     });
     if (!res.ok) return false;
     const json = await res.json();
-    useAuthStore.getState().setAuth(json.data.accessToken, json.data.user);
+    useAuthStore
+      .getState()
+      .setAuth(json.data.accessToken, json.data.refreshToken, json.data.user);
     return true;
   } catch {
     return false;

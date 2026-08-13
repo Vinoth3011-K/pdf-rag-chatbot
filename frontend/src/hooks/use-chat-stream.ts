@@ -70,7 +70,7 @@ export function useChatStream() {
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: "include",
+          // No credentials: "include" — chat uses Authorization Bearer header
           signal: controller.signal,
 
           body: JSON.stringify({

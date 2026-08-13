@@ -26,7 +26,7 @@ export function createApp(): Application {
     })
   );
 
-// CORS — build origin list from env (supports comma-separated values)
+// CORS — build allowed origins from env var (supports comma-separated list)
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3001",
@@ -35,24 +35,26 @@ const allowedOrigins = [
     : []),
 ];
 
-// Handle OPTIONS preflight for all routes before other middleware
-app.options("*", cors());
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (Postman, server-to-server, curl)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: Origin not allowed: ${origin}`));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  // credentials: false (default) — app uses Authorization Bearer header,
+  // not cross-origin cookies. Omitting this avoids the CORS preflight
+  // conflict: "wildcard + credentials" is invalid per the CORS spec.
+};
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (Postman, server-to-server, curl)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS: Origin not allowed: ${origin}`));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true, // Required — backend sets httpOnly refreshToken cookie
-  })
-);
+// Handle OPTIONS preflight for all routes BEFORE any other middleware
+app.options("*", cors(corsOptions));
+
+app.use(cors(corsOptions));
 
   // Middlewares
   app.use(compression());

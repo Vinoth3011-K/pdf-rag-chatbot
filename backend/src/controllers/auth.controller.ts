@@ -48,6 +48,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     success: true,
     data: {
       accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
       user: result.user
     }
   });
@@ -82,6 +83,7 @@ export const refresh = asyncHandler(async (req: Request, res: Response) => {
     success: true,
     data: {
       accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
       user: result.user
     }
   });

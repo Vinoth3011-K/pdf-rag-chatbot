@@ -20,9 +20,9 @@ export function useRequireAuth() {
         return;
       }
       try {
-        const res = await apiClient.post<{ accessToken: string; user: AuthUser }>("/auth/refresh");
+        const res = await apiClient.post<{ accessToken: string; refreshToken: string; user: AuthUser }>("/auth/refresh");
         if (!cancelled) {
-          setAuth(res.data.accessToken, res.data.user);
+          setAuth(res.data.accessToken, res.data.refreshToken, res.data.user);
           setChecked(true);
         }
       } catch {

@@ -34,8 +34,8 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginFormValues) => {
     setServerError(null);
     try {
-      const res = await apiClient.post<{ accessToken: string; user: AuthUser }>("/auth/login", values);
-      setAuth(res.data.accessToken, res.data.user);
+      const res = await apiClient.post<{ accessToken: string; refreshToken: string; user: AuthUser }>("/auth/login", values);
+      setAuth(res.data.accessToken, res.data.refreshToken, res.data.user);
       router.push("/dashboard");
     } catch (err) {
       setServerError(err instanceof ApiClientError ? err.message : "Something went wrong");
