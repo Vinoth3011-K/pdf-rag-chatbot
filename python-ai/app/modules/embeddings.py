@@ -19,11 +19,23 @@ class EmbeddingGenerator:
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
         result = self.collection._embedding_function(texts)
-        return result.tolist()
+        if hasattr(result, "tolist"):
+            return result.tolist()
+        if isinstance(result, list):
+            return [
+                r.tolist() if hasattr(r, "tolist") else r
+                for r in result
+            ]
+        return list(result)
 
     def embed_query(self, text: str) -> List[float]:
         result = self.collection._embedding_function([text])
-        return result[0].tolist()
+        first = result[0]
+        if hasattr(first, "tolist"):
+            return first.tolist()
+        if isinstance(first, list):
+            return first
+        return list(first)
 
 
 embedding_generator = EmbeddingGenerator()
