@@ -1,7 +1,12 @@
 import { useAuthStore } from "@/lib/auth-store";
 import { ApiResponse } from "@/types";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ??
+  "https://pdf-rag-chatbot-2-rlae.onrender.com/api";
+
+console.log("NEXT_PUBLIC_API_URL =", process.env.NEXT_PUBLIC_API_URL);
+console.log("Using API_URL =", API_URL);
 
 class ApiClientError extends Error {
   status: number;
@@ -25,29 +30,39 @@ async function request<T>(
     ...(options.body && !(options.body instanceof FormData)
       ? { "Content-Type": "application/json" }
       : {}),
-    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-    ...options.headers
+    ...(accessToken
+      ? { Authorization: `Bearer ${accessToken}` }
+      : {}),
+    ...options.headers,
   };
 
-  const res = await fetch(`${API_URL}${path}`, {
+  const url = `${API_URL}${path}`;
+
+  console.log("Request URL:", url);
+
+  const res = await fetch(url, {
     ...options,
-    headers
-    // No credentials: "include" — app uses Authorization Bearer header,
-    // not cross-origin cookies. Removing this fixes the CORS preflight error.
+    headers,
   });
 
   if (res.status === 401 && retry) {
     const refreshed = await tryRefresh();
+
     if (refreshed) {
       return request<T>(path, options, false);
     }
+
     useAuthStore.getState().clearAuth();
   }
 
   const json = await res.json().catch(() => ({}));
 
   if (!res.ok) {
-    throw new ApiClientError(json.message || "Request failed", res.status, json.details);
+    throw new ApiClientError(
+      json.message || "Request failed",
+      res.status,
+      json.details
+    );
   }
 
   return json as ApiResponse<T>;
@@ -57,17 +72,30 @@ async function tryRefresh(): Promise<boolean> {
   try {
     const { refreshToken } = useAuthStore.getState();
 
-    // Send refreshToken in the JSON body — no cookie dependency
     const res = await fetch(`${API_URL}/auth/refresh`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken: refreshToken ?? "" })
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        refreshToken: refreshToken ?? "",
+      }),
     });
-    if (!res.ok) return false;
+
+    if (!res.ok) {
+      return false;
+    }
+
     const json = await res.json();
+
     useAuthStore
       .getState()
-      .setAuth(json.data.accessToken, json.data.refreshToken, json.data.user);
+      .setAuth(
+        json.data.accessToken,
+        json.data.refreshToken,
+        json.data.user
+      );
+
     return true;
   } catch {
     return false;
@@ -75,14 +103,26 @@ async function tryRefresh(): Promise<boolean> {
 }
 
 export const apiClient = {
-  get: <T>(path: string) => request<T>(path, { method: "GET" }),
+  get: <T>(path: string) =>
+    request<T>(path, {
+      method: "GET",
+    }),
+
   post: <T>(path: string, body?: unknown) =>
     request<T>(path, {
       method: "POST",
-      body: body instanceof FormData ? body : JSON.stringify(body ?? {})
+      body:
+        body instanceof FormData
+          ? body
+          : JSON.stringify(body ?? {}),
     }),
-  delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
-  apiUrl: API_URL
+
+  delete: <T>(path: string) =>
+    request<T>(path, {
+      method: "DELETE",
+    }),
+
+  apiUrl: API_URL,
 };
 
 export { ApiClientError };
