@@ -18,15 +18,15 @@ export default function DashboardPage() {
   const stats = data?.data;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-up">
       <div>
-        <h1 className="font-display text-3xl text-ink-900">Dashboard</h1>
-        <p className="text-ink-400 mt-1">An overview of your knowledge base and chatbot activity.</p>
+        <h1 className="text-2xl sm:text-3xl font-semibold text-white tracking-tight">Dashboard</h1>
+        <p className="text-neutral-400 text-sm mt-1">An overview of your PDF knowledge base and AI query activity.</p>
       </div>
 
       {isLoading ? (
         <div className="flex justify-center py-20">
-          <Loader2 className="animate-spin text-ink-300" size={28} />
+          <Loader2 className="animate-spin text-[#10a37f]" size={32} />
         </div>
       ) : (
         <>
@@ -36,10 +36,10 @@ export default function DashboardPage() {
             <StatCard label="Questions asked" value={stats?.totalQuestionsAsked ?? 0} icon={HelpCircle} />
           </div>
 
-          <Card>
+          <Card className="border-[#2a2a2a] bg-[#161616]">
             <CardHeader>
-              <CardTitle>Recently uploaded</CardTitle>
-              <CardDescription>The latest additions to the library.</CardDescription>
+              <CardTitle>Recently Uploaded</CardTitle>
+              <CardDescription>Latest additions to the knowledge base library.</CardDescription>
             </CardHeader>
             <CardContent>
               <RecentDocumentsTable documents={stats?.recentDocuments ?? []} />

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { BookMarked } from "lucide-react";
+import { Sparkles, Plus, FileText, ArrowRight, ShieldCheck } from "lucide-react";
 import { useChatStream } from "@/hooks/use-chat-stream";
 import { ChatBubble } from "@/components/chat/chat-bubble";
 import { TypingIndicator } from "@/components/chat/typing-indicator";
@@ -10,9 +10,26 @@ import { SuggestedQuestions } from "@/components/chat/suggested-questions";
 import { ChatInput } from "@/components/chat/chat-input";
 
 const STARTER_PROMPTS = [
-  "What documents are in the knowledge base?",
-  "Summarize the key points across all PDFs",
-  "What's the refund or cancellation policy?"
+  {
+    title: "Document Summary",
+    desc: "Summarize the key insights across all uploaded PDFs",
+    prompt: "Summarize the key points across all PDFs in the knowledge base."
+  },
+  {
+    title: "Search Knowledge Base",
+    desc: "What topics and documents are available to query?",
+    prompt: "What documents and topics are available in the knowledge base?"
+  },
+  {
+    title: "Policies & Terms",
+    desc: "Extract regulations, terms, or cancellation guidelines",
+    prompt: "What are the key policies, terms, or regulations mentioned in the documents?"
+  },
+  {
+    title: "Key Data & Facts",
+    desc: "Extract specific metrics, dates, and conclusions",
+    prompt: "Extract the most important facts, numbers, and conclusions from the files."
+  }
 ];
 
 export default function ChatPage() {
@@ -20,70 +37,136 @@ export default function ChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth"
+    });
   }, [messages]);
 
   const lastAssistant = [...messages].reverse().find((m) => m.role === "ASSISTANT");
   const showSuggestions =
     lastAssistant && !lastAssistant.streaming && lastAssistant.suggestedQuestions.length > 0;
 
+  const handleResetChat = () => {
+    window.location.reload();
+  };
+
   return (
-    <main className="flex flex-col h-screen bg-paper">
-      <header className="border-b border-ink-100 bg-paper-card px-6 py-3.5 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 text-ink-800">
-          <BookMarked size={19} className="text-highlight-strong" />
-          <span className="font-display italic text-lg">Marginal</span>
-        </Link>
-        <span className="text-xs font-mono text-ink-300 uppercase tracking-wide">Public knowledge base</span>
+    <main className="flex flex-col h-screen h-[100dvh] bg-[#0d0d0d] text-[#ececec] overflow-hidden">
+      {/* Top Navigation Bar */}
+      <header className="h-13 sm:h-14 border-b border-[#222222] bg-[#141414]/90 backdrop-blur-md px-3 sm:px-6 flex items-center justify-between z-10 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <Link href="/" className="flex items-center gap-2 sm:gap-2.5 text-white hover:opacity-90 transition-opacity shrink-0">
+            <div className="h-7 w-7 rounded-lg bg-[#10a37f] flex items-center justify-center text-white shadow-glow">
+              <Sparkles size={15} />
+            </div>
+            <span className="font-semibold tracking-tight text-sm sm:text-base">Marginal <span className="text-[10px] sm:text-xs text-neutral-400 font-normal">AI</span></span>
+          </Link>
+          <span className="hidden md:inline-block text-xs font-mono bg-[#212121] border border-[#333] text-neutral-400 px-2.5 py-0.5 rounded-full truncate">
+            PDF Knowledge Base
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {messages.length > 0 && (
+            <button
+              onClick={handleResetChat}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#333] bg-[#1c1c1c] hover:bg-[#282828] hover:text-white px-2.5 sm:px-3 py-1.5 text-xs text-neutral-300 transition-colors"
+              title="Start a new chat"
+            >
+              <Plus size={14} />
+              <span className="hidden sm:inline">New Chat</span>
+            </button>
+          )}
+
+          <Link
+            href="/documents"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#333] bg-[#1c1c1c] hover:bg-[#282828] hover:text-white px-2.5 sm:px-3 py-1.5 text-xs text-neutral-300 transition-colors"
+          >
+            <FileText size={14} className="text-[#10a37f]" />
+            <span className="hidden sm:inline">Documents</span>
+          </Link>
+
+          <Link
+            href="/login"
+            className="inline-flex items-center justify-center rounded-lg bg-[#242424] hover:bg-[#2e2e2e] text-neutral-300 hover:text-white h-8 w-8 sm:w-auto sm:px-2.5 py-1.5 text-xs transition-colors"
+            title="Admin Login"
+          >
+            <ShieldCheck size={14} />
+          </Link>
+        </div>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin">
-        <div className="max-w-3xl mx-auto px-6 py-8 space-y-6">
+      {/* Main Chat Scroll Container */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin overscroll-contain">
+        <div className="max-w-3xl lg:max-w-4xl mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-6">
           {messages.length === 0 ? (
-            <div className="text-center py-20">
-              <BookMarked size={32} className="mx-auto text-ink-200 mb-4" />
-              <h1 className="font-display text-2xl text-ink-900 mb-2">Ask your knowledge base</h1>
-              <p className="text-ink-400 max-w-sm mx-auto mb-8">
-                Every answer is drawn from the uploaded PDFs and cited with the source page.
+            <div className="flex flex-col items-center justify-center py-6 sm:py-16 text-center animate-fade-up px-1">
+              {/* ChatGPT Hero Avatar */}
+              <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-2xl bg-[#171717] border border-[#2e2e2e] shadow-glow flex items-center justify-center text-[#10a37f] mb-4 sm:mb-6">
+                <Sparkles size={24} className="sm:w-8 sm:h-8" />
+              </div>
+
+              <h1 className="text-xl sm:text-3xl font-semibold text-white tracking-tight mb-2">
+                What would you like to know?
+              </h1>
+              <p className="text-xs sm:text-sm text-neutral-400 max-w-md mx-auto mb-6 sm:mb-10 leading-relaxed px-2">
+                Ask questions across your entire PDF library. Every response is synthesized with verified, clickable page citations.
               </p>
-              <div className="flex flex-col gap-2 max-w-md mx-auto">
-                {STARTER_PROMPTS.map((prompt) => (
+
+              {/* Starter Prompts Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 w-full max-w-2xl text-left">
+                {STARTER_PROMPTS.map((item, idx) => (
                   <button
-                    key={prompt}
-                    onClick={() => sendMessage(prompt)}
-                    className="text-left rounded-card border border-ink-100 bg-paper-card px-4 py-3 text-sm text-ink-600 hover:border-highlight hover:text-ink-800 transition-colors"
+                    key={idx}
+                    onClick={() => sendMessage(item.prompt)}
+                    className="group flex flex-col justify-between p-3.5 sm:p-4 rounded-xl sm:rounded-2xl border border-[#2a2a2a] bg-[#181818] hover:bg-[#202020] hover:border-[#404040] transition-all text-left shadow-sm active:scale-[0.98]"
                   >
-                    {prompt}
+                    <div>
+                      <h3 className="text-xs sm:text-sm font-medium text-white mb-0.5 sm:mb-1 flex items-center justify-between">
+                        {item.title}
+                        <ArrowRight size={13} className="text-neutral-500 group-hover:text-[#10a37f] group-hover:translate-x-0.5 transition-all shrink-0 ml-1" />
+                      </h3>
+                      <p className="text-[11px] sm:text-xs text-neutral-400 line-clamp-2 leading-relaxed">
+                        {item.desc}
+                      </p>
+                    </div>
                   </button>
                 ))}
               </div>
             </div>
           ) : (
-            messages.map((message) =>
-              message.streaming && message.content === "" ? (
-                <TypingIndicator key={message.id} />
-              ) : (
-                <ChatBubble
-                  key={message.id}
-                  role={message.role}
-                  content={message.content}
-                  sources={message.sources}
-                />
-              )
-            )
-          )}
+            <div className="space-y-4 sm:space-y-6">
+              {messages.map((message) =>
+                message.streaming && message.content === "" ? (
+                  <TypingIndicator key={message.id} />
+                ) : (
+                  <ChatBubble
+                    key={message.id}
+                    role={message.role}
+                    content={message.content}
+                    sources={message.sources}
+                  />
+                )
+              )}
 
-          {showSuggestions && (
-            <SuggestedQuestions questions={lastAssistant!.suggestedQuestions} onSelect={sendMessage} />
+              {showSuggestions && (
+                <SuggestedQuestions
+                  questions={lastAssistant!.suggestedQuestions}
+                  onSelect={sendMessage}
+                />
+              )}
+            </div>
           )}
         </div>
       </div>
 
-      <div className="border-t border-ink-100 bg-paper-card px-6 py-4">
-        <div className="max-w-3xl mx-auto">
+      {/* Fixed / Sticky Bottom Input Bar */}
+      <div className="border-t border-[#222222] bg-[#111111]/95 backdrop-blur-md px-3 sm:px-4 pt-2.5 sm:pt-3 pb-[max(0.6rem,env(safe-area-inset-bottom))] shrink-0">
+        <div className="max-w-3xl lg:max-w-4xl mx-auto">
           <ChatInput onSend={sendMessage} disabled={isStreaming} />
-          <p className="text-xs text-ink-300 text-center mt-2">
-            Answers may be imperfect — always verify against the source document.
+          <p className="text-[10px] sm:text-[11px] text-neutral-500 text-center mt-1.5 sm:mt-2.5 leading-normal">
+            Marginal AI answers are grounded in your uploaded documents. Verify key details in original PDFs.
           </p>
         </div>
       </div>

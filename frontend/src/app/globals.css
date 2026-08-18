@@ -4,73 +4,72 @@
 
 @layer base {
   :root {
-    --font-display: "Fraunces", Georgia, serif;
-    --font-body: "Inter", system-ui, sans-serif;
-    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+    --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    color-scheme: dark;
   }
 
   * {
     @apply border-border;
   }
 
-  body {
-    @apply bg-paper text-ink-800 font-body antialiased;
+  html, body {
+    @apply bg-[#0d0d0d] text-[#ececec] font-body antialiased;
+    background-color: #0d0d0d;
+    color: #ececec;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
   }
 
   ::selection {
-    background-color: theme("colors.highlight.soft");
-    color: theme("colors.ink.900");
+    background-color: rgba(16, 163, 127, 0.35);
+    color: #ffffff;
   }
 
   :focus-visible {
-    outline: 2px solid theme("colors.highlight.DEFAULT");
+    outline: 2px solid #10a37f;
     outline-offset: 2px;
   }
 }
 
 @layer utilities {
-  .highlighter-mark {
-    background-image: linear-gradient(theme("colors.highlight.soft"), theme("colors.highlight.soft"));
-    background-repeat: no-repeat;
-    background-position: 0 88%;
-    background-size: 100% 40%;
-  }
-
-  .highlighter-mark-animate {
-    background-image: linear-gradient(theme("colors.highlight.soft"), theme("colors.highlight.soft"));
-    background-repeat: no-repeat;
-    background-position: 0 88%;
-    animation: highlight-sweep 0.6s ease-out forwards;
-  }
-
-  .card-tab::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 20px;
-    width: 36px;
-    height: 6px;
-    border-radius: 0 0 4px 4px;
-    background: theme("colors.highlight.DEFAULT");
-  }
-
+  /* ChatGPT custom scrollbars */
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
   }
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: theme("colors.ink.200");
-    border-radius: 999px;
+    background: #333333;
+    border-radius: 9999px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #4f4f4f;
   }
 
+  /* Markdown prose inside assistant chat */
+  .prose-chat {
+    color: #ececec;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+  }
   .prose-chat p {
-    margin: 0 0 0.6em 0;
+    margin: 0 0 0.8em 0;
   }
   .prose-chat p:last-child {
     margin-bottom: 0;
   }
   .prose-chat ul,
   .prose-chat ol {
-    margin: 0.4em 0 0.6em 1.2em;
+    margin: 0.4em 0 0.8em 1.3em;
   }
   .prose-chat ul {
     list-style: disc;
@@ -79,53 +78,86 @@
     list-style: decimal;
   }
   .prose-chat li {
-    margin-bottom: 0.2em;
+    margin-bottom: 0.3em;
+    padding-left: 0.2em;
   }
   .prose-chat strong {
     font-weight: 600;
-    color: theme("colors.ink.900");
+    color: #ffffff;
+  }
+  .prose-chat em {
+    font-style: italic;
+    color: #e5e7eb;
   }
   .prose-chat code {
-    background: theme("colors.ink.50");
-    padding: 0.1em 0.35em;
-    border-radius: 4px;
+    background: #1e1e1e;
+    color: #5eead4;
+    padding: 0.15em 0.4em;
+    border-radius: 6px;
     font-family: var(--font-mono);
-    font-size: 0.85em;
+    font-size: 0.88em;
+    border: 1px solid #2f2f2f;
   }
   .prose-chat pre {
-    background: theme("colors.ink.900");
-    color: theme("colors.paper.DEFAULT");
-    padding: 0.75em 1em;
-    border-radius: 8px;
+    background: #141414;
+    color: #f3f4f6;
+    padding: 1em 1.25em;
+    border-radius: 10px;
+    border: 1px solid #2a2a2a;
     overflow-x: auto;
-    margin: 0.5em 0;
+    margin: 0.75em 0;
   }
   .prose-chat pre code {
     background: transparent;
     padding: 0;
+    border: none;
+    color: inherit;
+    font-size: 0.9em;
   }
   .prose-chat h1,
   .prose-chat h2,
-  .prose-chat h3 {
-    font-family: var(--font-display);
-    color: theme("colors.ink.900");
-    margin: 0.6em 0 0.3em 0;
+  .prose-chat h3,
+  .prose-chat h4 {
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0.9em 0 0.4em 0;
+    line-height: 1.3;
   }
+  .prose-chat h1 { font-size: 1.35em; }
+  .prose-chat h2 { font-size: 1.2em; }
+  .prose-chat h3 { font-size: 1.08em; }
+  
   .prose-chat blockquote {
-    border-left: 3px solid theme("colors.highlight.DEFAULT");
-    padding-left: 0.75em;
-    color: theme("colors.ink.500");
-    margin: 0.5em 0;
+    border-left: 3px solid #10a37f;
+    padding-left: 0.9em;
+    color: #9ca3af;
+    margin: 0.75em 0;
+    font-style: italic;
+    background: rgba(16, 163, 127, 0.05);
+    padding-top: 0.25em;
+    padding-bottom: 0.25em;
+    border-radius: 0 6px 6px 0;
   }
   .prose-chat table {
     border-collapse: collapse;
-    margin: 0.5em 0;
+    margin: 0.75em 0;
     width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #2f2f2f;
   }
-  .prose-chat th,
-  .prose-chat td {
-    border: 1px solid theme("colors.ink.100");
-    padding: 0.35em 0.6em;
+  .prose-chat th {
+    background: #1a1a1a;
+    color: #ffffff;
+    font-weight: 600;
+    border: 1px solid #2f2f2f;
+    padding: 0.5em 0.75em;
     text-align: left;
+  }
+  .prose-chat td {
+    border: 1px solid #262626;
+    padding: 0.45em 0.75em;
+    text-align: left;
+    background: #141414;
   }
 }
