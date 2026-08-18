@@ -124,7 +124,17 @@ export class DocumentService {
   }
 
   async list(params: ListDocumentsParams) {
-    return documentRepository.findAll(params);
+    const { items, total } = await documentRepository.list(params);
+
+    return {
+      items,
+      pagination: {
+        page: params.page,
+        limit: params.limit,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / params.limit))
+      }
+    };
   }
 
   async getById(id: string) {
