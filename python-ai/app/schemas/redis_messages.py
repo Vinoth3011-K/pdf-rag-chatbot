@@ -9,13 +9,12 @@ from pydantic import BaseModel, Field
 class PdfProcessRequestMessage(BaseModel):
     requestId: str
     documentId: str
-    filePath: str
-    chromaCollection: str
+    fileUrl: str
+    chromaCollection: Optional[str] = "pdf_knowledge_base"
 
     # Original uploaded PDF name
     # Example: NLP RECORD 01.pdf
     documentTitle: Optional[str] = None
-
 
 
 class PdfProcessResponseMessage(BaseModel):
@@ -28,7 +27,6 @@ class PdfProcessResponseMessage(BaseModel):
     errorMessage: Optional[str] = None
 
 
-
 # ==============================
 # Chat Messages
 # ==============================
@@ -36,7 +34,6 @@ class PdfProcessResponseMessage(BaseModel):
 class ChatHistoryItem(BaseModel):
     role: Literal["USER", "ASSISTANT"]
     content: str
-
 
 
 class ChatRequestMessage(BaseModel):
@@ -47,7 +44,6 @@ class ChatRequestMessage(BaseModel):
     history: List[ChatHistoryItem] = Field(
         default_factory=list
     )
-
 
 
 class ChatStreamChunkMessage(BaseModel):
@@ -62,7 +58,6 @@ class ChatStreamChunkMessage(BaseModel):
     content: str
 
 
-
 # ==============================
 # Source Metadata
 # ==============================
@@ -74,7 +69,6 @@ class ChatSourceItem(BaseModel):
     pageNumber: Optional[int] = None
     snippet: Optional[str] = None
     score: Optional[float] = None
-
 
 
 # ==============================

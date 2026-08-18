@@ -4,6 +4,7 @@ import { DocumentStatus } from "@prisma/client";
 import { documentService } from "@services/document.service";
 import { asyncHandler } from "@middlewares/errorHandler";
 import { ApiError } from "@utils/ApiError";
+import { env } from "@config/env";
 
 export const uploadDocument = asyncHandler(async (req: Request, res: Response) => {
   if (!req.file) {
@@ -16,15 +17,20 @@ export const uploadDocument = asyncHandler(async (req: Request, res: Response) =
 
   // Convert relative upload path to absolute path
   const absolutePath = path.resolve(req.file.path);
+  const filename = path.basename(req.file.path);
+  const baseUrl = env.backendUrl || `${req.protocol}://${req.get("host")}`;
+  const fileUrl = `${baseUrl.replace(/\/$/, "")}/uploads/${filename}`;
 
   console.log("========== PDF Upload ==========");
   console.log("Original Path :", req.file.path);
   console.log("Absolute Path :", absolutePath);
+  console.log("File URL      :", fileUrl);
   console.log("================================");
 
   const document = await documentService.uploadAndProcess(req.user.sub, {
     originalName: req.file.originalname,
     storedPath: absolutePath,
+    fileUrl,
     sizeBytes: req.file.size,
     mimeType: req.file.mimetype
   });
@@ -78,7 +84,8 @@ export const deleteDocument = asyncHandler(async (req: Request, res: Response) =
 });
 
 export const reprocessDocument = asyncHandler(async (req: Request, res: Response) => {
-  const document = await documentService.reprocess(req.params.id);
+  const baseUrl = env.backendUrl || `${req.protocol}://${req.get("host")}`;
+  const document = await documentService.reprocess(req.params.id, baseUrl);
 
   res.status(200).json({
     success: true,

@@ -1,4 +1,6 @@
 import os
+import tempfile
+import httpx
 
 from app.modules.chunking import text_chunker
 from app.modules.pdf_loader import pdf_loader
@@ -17,36 +19,43 @@ class PdfProcessingService:
         request: PdfProcessRequestMessage
     ) -> PdfProcessResponseMessage:
 
+        temp_file_path = None
         try:
 
             logger.info(
-                f"[{request.requestId}] Processing PDF: {request.documentId}"
+                f"[{request.requestId}] Processing PDF from URL: {request.fileUrl} (doc: {request.documentId})"
             )
 
+            # Download PDF from fileUrl
+            async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
+                response = await client.get(request.fileUrl)
+                if response.status_code != 200:
+                    raise ValueError(
+                        f"Failed to download PDF from {request.fileUrl}: HTTP {response.status_code}"
+                    )
+                pdf_bytes = response.content
 
-            # Check file exists
-            if not os.path.exists(request.filePath):
-                raise FileNotFoundError(
-                    f"File not found at {request.filePath}"
-                )
+            if not pdf_bytes:
+                raise ValueError("Downloaded PDF file is empty")
 
+            # Save to temporary file
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+                tmp_file.write(pdf_bytes)
+                temp_file_path = tmp_file.name
 
             # Extract PDF pages
             pages = pdf_loader.load(
-                request.filePath
+                temp_file_path
             )
-
 
             if not pages:
                 raise ValueError(
                     "No extractable text found in PDF"
                 )
 
-
             logger.info(
                 f"[{request.documentId}] Extracted {len(pages)} pages"
             )
-
 
             # Create chunks
             chunks = text_chunker.chunk_pages(
@@ -54,30 +63,25 @@ class PdfProcessingService:
                 pages
             )
 
-
             logger.info(
                 f"[{request.documentId}] Created {len(chunks)} chunks"
             )
-
 
             # Keep original uploaded PDF name
             document_title = (
                 request.documentTitle
                 if request.documentTitle
-                else os.path.basename(request.filePath)
+                else os.path.basename(request.fileUrl.split("?")[0])
             )
-
 
             logger.info(
                 f"[{request.documentId}] Document title: {document_title}"
             )
 
-
             # Remove old vectors before re-upload
             vector_store.delete_document(
                 request.documentId
             )
-
 
             # Save vectors into Chroma
             vector_store.upsert_chunks(
@@ -86,11 +90,9 @@ class PdfProcessingService:
                 chunks
             )
 
-
             logger.info(
                 f"[{request.documentId}] Vector upload completed"
             )
-
 
             return PdfProcessResponseMessage(
                 requestId=request.requestId,
@@ -100,13 +102,11 @@ class PdfProcessingService:
                 chunkCount=len(chunks),
             )
 
-
         except Exception as exc:
 
             logger.exception(
                 f"Failed to process document {request.documentId}: {exc}"
             )
-
 
             return PdfProcessResponseMessage(
                 requestId=request.requestId,
@@ -114,6 +114,15 @@ class PdfProcessingService:
                 status="FAILED",
                 errorMessage=str(exc),
             )
+
+        finally:
+            if temp_file_path and os.path.exists(temp_file_path):
+                try:
+                    os.unlink(temp_file_path)
+                except Exception as cleanup_err:
+                    logger.warning(
+                        f"Failed to delete temp file {temp_file_path}: {cleanup_err}"
+                    )
 
 
 pdf_processing_service = PdfProcessingService()

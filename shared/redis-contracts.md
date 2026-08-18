@@ -11,7 +11,8 @@ since there is no shared runtime package across languages.
 {
   "requestId": "uuid",
   "documentId": "uuid",
-  "filePath": "/app/uploads/xxxx.pdf",
+  "fileUrl": "https://api.example.com/uploads/xxxx.pdf",
+  "documentTitle": "filename.pdf",
   "chromaCollection": "pdf_knowledge_base"
 }
 ```

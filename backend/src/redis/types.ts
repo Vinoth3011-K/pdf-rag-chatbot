@@ -2,15 +2,13 @@ export interface PdfDeleteRequestMessage {
   documentId: string;
 }
 
-
 export interface PdfProcessRequestMessage {
   requestId: string;
   documentId: string;
-  filePath: string;
-  chromaCollection: string;
+  fileUrl: string;
+  chromaCollection?: string;
   documentTitle?: string;
 }
-
 
 export interface PdfProcessResponseMessage {
   requestId: string;
@@ -21,12 +19,10 @@ export interface PdfProcessResponseMessage {
   errorMessage?: string | null;
 }
 
-
 export interface ChatHistoryItem {
   role: "USER" | "ASSISTANT";
   content: string;
 }
-
 
 export interface ChatRequestMessage {
   requestId: string;
@@ -35,13 +31,11 @@ export interface ChatRequestMessage {
   history: ChatHistoryItem[];
 }
 
-
 export interface ChatStreamChunkMessage {
   requestId: string;
   type: "token" | "done" | "error";
   content: string;
 }
-
 
 export interface ChatSourceItem {
   documentId: string;
@@ -50,7 +44,6 @@ export interface ChatSourceItem {
   snippet?: string | null;
   score?: number | null;
 }
-
 
 export interface ChatResponseMessage {
   requestId: string;

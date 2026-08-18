@@ -17,6 +17,7 @@ export const env = {
   isProduction: process.env.NODE_ENV === "production",
 
   port: parseInt(process.env.PORT || process.env.BACKEND_PORT || "4000", 10),
+  backendUrl: process.env.BACKEND_URL || "",
   corsOrigin: process.env.CORS_ORIGIN || "http://localhost:3000",
 
   databaseUrl: required("DATABASE_URL", "postgresql://raguser:ragpassword@localhost:5432/pdf_rag_db"),
