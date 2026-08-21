@@ -1,3 +1,4 @@
+import asyncio
 import os
 import tempfile
 import httpx
@@ -26,17 +27,33 @@ class PdfProcessingService:
                 f"[{request.requestId}] Processing PDF from URL: {request.fileUrl} (doc: {request.documentId})"
             )
 
-            # Download PDF from fileUrl
-            async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
-                response = await client.get(request.fileUrl)
-                if response.status_code != 200:
-                    raise ValueError(
-                        f"Failed to download PDF from {request.fileUrl}: HTTP {response.status_code}"
-                    )
-                pdf_bytes = response.content
+            # Download PDF from fileUrl with retry logic
+            pdf_bytes = None
+            max_retries = 3
+            headers = {"User-Agent": "PDF-RAG-Python-AI/1.0"}
+
+            async with httpx.AsyncClient(timeout=60.0, follow_redirects=True, headers=headers) as client:
+                for attempt in range(1, max_retries + 1):
+                    try:
+                        logger.info(f"[{request.requestId}] Attempt {attempt}/{max_retries}: Fetching {request.fileUrl}")
+                        response = await client.get(request.fileUrl)
+                        if response.status_code == 200:
+                            pdf_bytes = response.content
+                            break
+                        else:
+                            logger.warning(
+                                f"[{request.requestId}] Download attempt {attempt} returned HTTP {response.status_code}: {response.text[:200]}"
+                            )
+                    except httpx.RequestError as req_err:
+                        logger.warning(f"[{request.requestId}] Download attempt {attempt} failed with network error: {req_err}")
+
+                    if attempt < max_retries:
+                        await asyncio.sleep(2 * attempt)
 
             if not pdf_bytes:
-                raise ValueError("Downloaded PDF file is empty")
+                raise ValueError(
+                    f"Failed to download PDF from {request.fileUrl} after {max_retries} attempts"
+                )
 
             # Save to temporary file
             with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:

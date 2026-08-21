@@ -17,9 +17,11 @@ export const uploadDocument = asyncHandler(async (req: Request, res: Response) =
 
   // Convert relative upload path to absolute path
   const absolutePath = path.resolve(req.file.path);
-  const filename = path.basename(req.file.path);
-  const baseUrl = env.backendUrl || `${req.protocol}://${req.get("host")}`;
-  const fileUrl = `${baseUrl.replace(/\/$/, "")}/uploads/${filename}`;
+  const filename = req.file.filename || path.basename(req.file.path);
+  const host = req.get("x-forwarded-host") || req.get("host");
+  const protocol = req.headers["x-forwarded-proto"] === "https" || req.protocol === "https" ? "https" : req.protocol;
+  const baseUrl = (env.backendUrl || `${protocol}://${host}`).replace(/\/$/, "");
+  const fileUrl = `${baseUrl}/uploads/${filename}`;
 
   console.log("========== PDF Upload ==========");
   console.log("Original Path :", req.file.path);

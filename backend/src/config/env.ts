@@ -12,6 +12,15 @@ function required(key: string, fallback?: string): string {
   return value;
 }
 
+const resolveUploadDir = (): string => {
+  if (process.env.UPLOAD_DIR) {
+    return path.isAbsolute(process.env.UPLOAD_DIR)
+      ? process.env.UPLOAD_DIR
+      : path.resolve(process.cwd(), process.env.UPLOAD_DIR);
+  }
+  return path.resolve(process.cwd(), "uploads");
+};
+
 export const env = {
   nodeEnv: process.env.NODE_ENV || "development",
   isProduction: process.env.NODE_ENV === "production",
@@ -32,7 +41,7 @@ export const env = {
   },
 
   upload: {
-    dir: process.env.UPLOAD_DIR || path.resolve(__dirname, "../../uploads"),
+    dir: resolveUploadDir(),
     maxSizeMb: parseInt(process.env.MAX_UPLOAD_SIZE_MB || "25", 10)
   }
 };

@@ -1,5 +1,7 @@
 import "express-async-errors";
 
+import fs from "fs";
+import path from "path";
 import express, { Application } from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -112,7 +114,48 @@ export function createApp(): Application {
   // ==========================
   // Static Files (Uploaded PDFs)
   // ==========================
-  app.use("/uploads", express.static(env.upload.dir));
+  if (!fs.existsSync(env.upload.dir)) {
+    fs.mkdirSync(env.upload.dir, { recursive: true });
+  }
+
+  // Middleware for uploads route to ensure cross-origin access for Python AI service & frontend
+  app.use(
+    "/uploads",
+    (_req, res, next) => {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+      next();
+    },
+    express.static(env.upload.dir, {
+      dotfiles: "ignore",
+      etag: true,
+      maxAge: "1d",
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith(".pdf")) {
+          res.setHeader("Content-Type", "application/pdf");
+        }
+      }
+    })
+  );
+
+  // Explicit route handler to ensure reliable file download and clear logging on Render
+  app.get("/uploads/:filename", (req, res) => {
+    const filename = path.basename(req.params.filename);
+    const filePath = path.join(env.upload.dir, filename);
+
+    if (fs.existsSync(filePath)) {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+      res.setHeader("Content-Type", "application/pdf");
+      return res.sendFile(filePath);
+    }
+
+    logger.warn(`PDF requested but not found at: ${filePath}`);
+    return res.status(404).json({
+      success: false,
+      message: `File not found: ${filename}`
+    });
+  });
 
   // ==========================
   // API Routes
