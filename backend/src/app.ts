@@ -28,31 +28,65 @@ export function createApp(): Application {
     })
   );
 
-  // CORS — build allowed origins from env var (supports comma-separated list)
-  const allowedOrigins = [
+  // CORS — build allowed origins from env var + defaults + Vercel dynamic matching
+  const configuredOrigins = env.corsOrigin
+    ? env.corsOrigin.split(",").map((o) => o.trim()).filter(Boolean)
+    : [];
+
+  const defaultOrigins = [
     "http://localhost:3000",
     "http://localhost:3001",
-    ...(env.corsOrigin
-      ? env.corsOrigin.split(",").map((o) => o.trim()).filter(Boolean)
-      : []),
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
   ];
+
+  const allowedOrigins = Array.from(new Set([...defaultOrigins, ...configuredOrigins]));
 
   const corsOptions: cors.CorsOptions = {
     origin: (origin, callback) => {
-      // Allow requests with no origin (Postman, server-to-server, curl)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS: Origin not allowed: ${origin}`));
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server, Postman)
+      if (!origin) {
+        return callback(null, true);
       }
+
+      // Check explicit allowed origins list
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // Allow any Vercel deployment URL (*.vercel.app)
+      if (
+        /^https:\/\/[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.vercel\.app$/.test(origin) ||
+        origin.endsWith(".vercel.app")
+      ) {
+        return callback(null, true);
+      }
+
+      // If origin is not allowed, reject gracefully without crashing the preflight pipeline
+      logger.warn(`CORS blocked request from origin: ${origin}`);
+      return callback(null, false);
     },
+    credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+      "Origin",
+      "Cookie",
+      "Cache-Control",
+      "Pragma",
+      "Range",
+      "X-Session-Id",
+    ],
+    exposedHeaders: ["Content-Disposition", "Content-Length", "X-Session-Id"],
+    optionsSuccessStatus: 200,
+    maxAge: 86400, // 24 hours preflight cache
   };
 
-  // Handle OPTIONS preflight for all routes BEFORE any other middleware
+  // Handle OPTIONS preflight for all routes BEFORE other middleware
   app.options("*", cors(corsOptions));
-
   app.use(cors(corsOptions));
 
   // Middlewares
