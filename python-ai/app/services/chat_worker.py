@@ -9,23 +9,32 @@ from app.utils.logging import logger
 
 
 async def run_chat_worker() -> None:
-    client = get_redis_client()
-    pubsub = client.pubsub()
-    await pubsub.subscribe(RedisTopics.CHAT_REQUEST)
-    logger.info(f"Chat worker subscribed to '{RedisTopics.CHAT_REQUEST}'")
-
-    async for message in pubsub.listen():
-        if message["type"] != "message":
-            continue
-
+    while True:
         try:
-            payload = json.loads(message["data"])
-            request = ChatRequestMessage(**payload)
-        except Exception as exc:  # noqa: BLE001
-            logger.error(f"Failed to parse chat.request payload: {exc}")
-            continue
+            client = get_redis_client()
+            pubsub = client.pubsub()
+            await pubsub.subscribe(RedisTopics.CHAT_REQUEST)
+            logger.info(f"Chat worker subscribed to '{RedisTopics.CHAT_REQUEST}'")
 
-        asyncio.create_task(_handle_and_respond(client, request))
+            async for message in pubsub.listen():
+                if message["type"] != "message":
+                    continue
+
+                try:
+                    payload = json.loads(message["data"])
+                    request = ChatRequestMessage(**payload)
+                except Exception as exc:  # noqa: BLE001
+                    logger.error(f"Failed to parse chat.request payload: {exc}")
+                    continue
+
+                asyncio.create_task(_handle_and_respond(client, request))
+
+        except asyncio.CancelledError:
+            logger.info("Chat worker task cancelled.")
+            break
+        except Exception as exc:
+            logger.error(f"Chat worker connection error: {exc}. Reconnecting in 5 seconds...")
+            await asyncio.sleep(5)
 
 
 async def _handle_and_respond(client, request: ChatRequestMessage) -> None:

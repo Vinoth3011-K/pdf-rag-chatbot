@@ -2,13 +2,21 @@ import { createClient, RedisClientType } from "redis";
 import { env } from "@config/env";
 import { logger } from "@utils/logger";
 
-export const publisherClient: RedisClientType = createClient({
+const redisOptions = {
   url: env.redisUrl,
-});
+  pingInterval: 30000, // Send PING every 30 seconds to prevent idle timeout
+  socket: {
+    keepAlive: 30000,
+    reconnectStrategy: (retries: number) => {
+      const delay = Math.min(retries * 500, 3000);
+      logger.warn(`Reconnecting to Redis (attempt ${retries}) in ${delay}ms`);
+      return delay;
+    },
+  },
+};
 
-export const subscriberClient: RedisClientType = createClient({
-  url: env.redisUrl,
-});
+export const publisherClient: RedisClientType = createClient(redisOptions);
+export const subscriberClient: RedisClientType = createClient(redisOptions);
 
 publisherClient.on("error", (err: Error) =>
   logger.error("Redis publisher error", { message: err.message || err })
